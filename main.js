@@ -156,7 +156,7 @@ if (windChartCanvas && window.Chart) {
         },
         y: {
           beginAtZero: true,
-          title: { display: true, text: '風速/風速 (m/s)' },
+          title: { display: true, text: '風速 (m/s)' },
           min: 0,
           max: 1 // 風速レンジボタンで可変
         },
