@@ -3,10 +3,24 @@ body {
   text-align: center;
   margin: 40px;
 }
+/* canvas全体にはborder-radiusを適用しない */
 canvas {
   background: #eee;
   margin-top: 20px;
+}
+#windCanvas {
   border-radius: 50%;
+}
+#windChart {
+  border-radius: 0;
+  background: #fff;
+  display: block;
+  margin: 0 auto 0 auto;
+  max-width: 100%;
+  width: 100%;
+  height: auto;
+  min-width: 320px;
+  min-height: 180px;
 }
 button {
   margin: 1em 0;
@@ -16,7 +30,7 @@ pre {
   background: #222;
   color: #b4ffb4;
   padding: 10px;
-  width: 90%;
+  width: 100%;
   margin: 0 auto;
   max-height: 120px;
   overflow-y: auto;
