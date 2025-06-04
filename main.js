@@ -13,16 +13,59 @@ let serialReader = null; // リーダー管理
 let serialStreamClosed = null; // Stream close promise
 const windChartCanvas = document.getElementById('windChart');
 
-// Chart.js zoomプラグインを明示的に登録（重複登録防止）
-if (window.Chart && window.ChartZoom && !Chart.registry.plugins.get('zoom')) {
-  Chart.register(window.ChartZoom);
-}
+// --- Chart.jsプラグイン登録 ---
+const autoScalePlugin = {
+  id: 'autoScale',
+  beforeUpdate: (chart) => {
+    // --- y軸(風速/機首風速) ---
+    const yScale = chart.options.scales.y;
+    let manualMax = yScale.max;
+    let manualMin = yScale.min ?? 0;
+    let yValues = [];
+    chart.data.datasets.forEach(ds => {
+      if (!ds.hidden && ds.yAxisID === 'y') {
+        yValues = yValues.concat(ds.data.filter(v => typeof v === 'number' && !isNaN(v)));
+      }
+    });
+    if (yValues.length > 0) {
+      const dataMax = Math.max(...yValues);
+      const dataMin = Math.min(...yValues);
+      yScale.max = Math.max(manualMax ?? 1, Math.ceil(dataMax * 1.1));
+      yScale.min = Math.min(manualMin, Math.floor(dataMin * 0.9), 0);
+    }
+    // --- yTemp軸(温度)は固定 ---
+    // --- y3軸(音速) ---
+    const y3Scale = chart.options.scales.y3;
+    if (y3Scale) {
+      let y3Values = [];
+      chart.data.datasets.forEach(ds => {
+        if (!ds.hidden && ds.yAxisID === 'y3') {
+          y3Values = y3Values.concat(ds.data.filter(v => typeof v === 'number' && !isNaN(v)));
+        }
+      });
+      if (y3Values.length > 0) {
+        const dataMax = Math.max(...y3Values);
+        const dataMin = Math.min(...y3Values);
+        y3Scale.max = Math.max(400, Math.ceil(dataMax * 1.05));
+        y3Scale.min = Math.min(250, Math.floor(dataMin * 0.95));
+      } else {
+        y3Scale.max = 400;
+        y3Scale.min = 250;
+      }
+    }
+  }
+};
 
-if (windChartCanvas && window.Chart) {
-  // Chart.js v4以降はプラグイン登録が必要
+if (window.Chart) {
   if (window.ChartZoom && !Chart.registry.plugins.get('zoom')) {
     Chart.register(window.ChartZoom);
   }
+  if (!Chart.registry.plugins.get('autoScale')) {
+    Chart.register(autoScalePlugin);
+  }
+}
+
+if (windChartCanvas && window.Chart) {
   windChart = new Chart(windChartCanvas, {
     type: 'line',
     data: {
@@ -200,49 +243,6 @@ if (windChartCanvas && window.Chart) {
           },
           ticks: {
             stepSize: 50
-          }
-        }
-      },
-      // --- 追加: y軸の自動スケーリング ---
-      // Chart.js v3/v4: plugins.beforeUpdateでy軸スケール調整
-      plugins: {
-        // ...existing code...
-        beforeUpdate: (chart) => {
-          // --- y軸(風速/機首風速) ---
-          const yScale = chart.options.scales.y;
-          let manualMax = yScale.max;
-          let manualMin = yScale.min ?? 0;
-          let yValues = [];
-          chart.data.datasets.forEach(ds => {
-            if (!ds.hidden && ds.yAxisID === 'y') {
-              yValues = yValues.concat(ds.data.filter(v => typeof v === 'number' && !isNaN(v)));
-            }
-          });
-          if (yValues.length > 0) {
-            const dataMax = Math.max(...yValues);
-            const dataMin = Math.min(...yValues);
-            yScale.max = Math.max(manualMax ?? 1, Math.ceil(dataMax * 1.1));
-            yScale.min = Math.min(manualMin, Math.floor(dataMin * 0.9), 0);
-          }
-          // --- yTemp軸(温度)は固定 ---
-          // --- y3軸(音速) ---
-          const y3Scale = chart.options.scales.y3;
-          if (y3Scale) {
-            let y3Values = [];
-            chart.data.datasets.forEach(ds => {
-              if (!ds.hidden && ds.yAxisID === 'y3') {
-                y3Values = y3Values.concat(ds.data.filter(v => typeof v === 'number' && !isNaN(v)));
-              }
-            });
-            if (y3Values.length > 0) {
-              const dataMax = Math.max(...y3Values);
-              const dataMin = Math.min(...y3Values);
-              y3Scale.max = Math.max(400, Math.ceil(dataMax * 1.05));
-              y3Scale.min = Math.min(250, Math.floor(dataMin * 0.95));
-            } else {
-              y3Scale.max = 400;
-              y3Scale.min = 250;
-            }
           }
         }
       }
