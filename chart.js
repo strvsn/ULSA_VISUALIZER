@@ -55,4 +55,20 @@ export function setFollowLatestEnabled(enabled) {
   }
 }
 
+/**
+ * バイト数をカンマ区切り＋適切な単位でフォーマットする
+ * 例: 1,234 B / 12,345 kB / 1,234.6 MB
+ */
+export function formatBytes(bytes) {
+  if (isNaN(bytes)) return '-';
+  const units = ['B', 'kB', 'MB', 'GB', 'TB'];
+  let idx = 0;
+  let num = bytes;
+  while (num >= 1000 && idx < units.length - 1) {
+    num /= 1000;
+    idx++;
+  }
+  return `${num.toLocaleString(undefined, { maximumFractionDigits: 1 })} ${units[idx]}`;
+}
+
 // 必要に応じて他のエクスポートも追加

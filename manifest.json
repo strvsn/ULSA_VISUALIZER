@@ -1,11 +1,11 @@
 {
-  "name": "ULSA Browse",
-  "short_name": "ULSA",
+  "name": "ULSA VISUALIZER",
+  "short_name": "ULSA VISUALIZER",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#007bff",
-  "description": "風速・風向データの可視化・記録アプリ",
+  "description": "風速・風向データの可視化・記録アプリ (ULSA VISUALIZER)",
   "icons": [
     {
       "src": "icon-192.png",

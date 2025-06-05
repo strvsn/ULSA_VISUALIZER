@@ -164,7 +164,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const now = new Date();
     const durationSec = Math.floor((now - window.logStartTime) / 1000);
-    window.logInfoDiv.textContent = `記録時間: ${durationSec} 秒　データ容量: ${window.logByteSize} バイト`;
+    // データ容量の表示をカンマ区切り＋単位付きに変更
+    import('./chart.js').then(mod => {
+      const formatBytes = mod.formatBytes || (b => `${b} B`);
+      window.logInfoDiv.textContent = `記録時間: ${durationSec} 秒　データ容量: ${formatBytes(window.logByteSize)}`;
+    });
   }
 
   // ログ記録開始
@@ -252,7 +256,10 @@ export function addLogData(entry) {
     if (window.logInfoDiv) {
       const now = new Date();
       const durationSec = Math.floor((now - window.logStartTime) / 1000);
-      window.logInfoDiv.textContent = `記録時間: ${durationSec} 秒　データ容量: ${window.logByteSize} バイト`;
+      import('./chart.js').then(mod => {
+        const formatBytes = mod.formatBytes || (b => `${b} B`);
+        window.logInfoDiv.textContent = `記録時間: ${durationSec} 秒　データ容量: ${formatBytes(window.logByteSize)}`;
+      });
     }
   }
 }

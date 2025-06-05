@@ -1,4 +1,4 @@
-# ULSA_BROWSE
+# ULSA VISUALIZER
 
 ## GitHub Pagesでの公開方法
 
