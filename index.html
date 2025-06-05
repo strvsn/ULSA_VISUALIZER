@@ -15,6 +15,16 @@
   <!-- Chart.js Zoom Plugin v2 (Chart.js v4対応) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.2.0/chartjs-plugin-zoom.min.js" integrity="sha512-FRGbE3pigbYamZnw4+uT4t63+QJOfg4MXSgzPn2t8AWg9ofmFvZ/0Z37ZpCawjfXLBSVX2p2CncsmUH2hzsgJg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>  <!-- Chart.js date-fns adapter -->
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#007bff">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('service-worker.js');
+      });
+    }
+  </script>
 </head>
 <body class="bg-light" id="bodyRoot">
   <div class="container py-4" id="mainContainer">
