@@ -44,3 +44,27 @@ pre {
   font-size: 0.9em;
   text-align: left;
 }
+#chartArea {
+  position: relative;
+}
+#chartControlRow {
+  position: static;
+  width: 100%;
+  z-index: 10;
+  pointer-events: auto;
+  margin-bottom: 0.5rem;
+}
+#chartControlRow .btn-group,
+#chartControlRow button {
+  pointer-events: auto;
+  height: 32px;
+  font-size: 1em;
+  padding-top: 0.15em;
+  padding-bottom: 0.15em;
+}
+#zoomResetBtn {
+  height: 32px;
+  font-size: 1em;
+  padding-top: 0.15em;
+  padding-bottom: 0.15em;
+}

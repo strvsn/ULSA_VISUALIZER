@@ -35,19 +35,24 @@
     </div>
     <div class="row mb-4 align-items-center">
       <div class="col-lg-10 px-0">
-        <div id="chartArea" class="bg-white rounded shadow p-0 mb-2" style="overflow:hidden;">
+        <div id="chartArea" class="bg-white rounded shadow p-0 mb-2 position-relative" style="overflow:hidden;">
           <canvas id="windChart" class="mb-0" style="width:100%;max-width:100%;height:320px;min-height:180px;"></canvas>
-        </div>
-        <div class="d-flex justify-content-center mb-2">
-          <div class="btn-group btn-group-sm" role="group" aria-label="タイムスケール">
-            <button type="button" class="btn btn-outline-secondary time-range-btn" data-range="1">1秒</button>
-            <button type="button" class="btn btn-outline-secondary time-range-btn" data-range="10">10秒</button>
-            <button type="button" class="btn btn-outline-secondary time-range-btn" data-range="60">60秒</button>
-          </div>
         </div>
         <div class="small text-muted" id="chartHint">
           <i class="bi bi-mouse"></i> ホイール/ピンチでズーム、ドラッグでパン
         </div>
+        <!-- ▼▼ タイムスケールボタンとズームリセットボタンをX軸ラベル（時刻）の下に配置 ▼▼ -->
+        <div class="d-flex justify-content-center align-items-center mt-2 mb-2" id="chartControlRow">
+          <div class="btn-group btn-group-sm me-2" role="group" aria-label="タイムスケール">
+            <button type="button" class="btn btn-outline-secondary time-range-btn" data-range="1">1秒</button>
+            <button type="button" class="btn btn-outline-secondary time-range-btn" data-range="10">10秒</button>
+            <button type="button" class="btn btn-outline-secondary time-range-btn" data-range="60">60秒</button>
+            <button type="button" class="btn btn-outline-secondary time-range-btn" data-range="3600">1時間</button>
+            <button type="button" class="btn btn-outline-secondary time-range-btn" data-range="86400">1日</button>
+          </div>
+          <button type="button" class="btn btn-outline-secondary btn-sm ms-2" id="zoomResetBtn">ズームリセット</button>
+        </div>
+        <!-- ▲▲ グラフ下部配置ここまで ▲▲ -->
       </div>
       <div class="col-lg-2 d-flex flex-column align-items-center">
         <!-- グラフ制御ボタン -->

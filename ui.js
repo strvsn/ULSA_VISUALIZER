@@ -2,5 +2,5 @@ import { windChart, windChartCanvas, updateWindChart } from './windChart.js';
 import { windHistory, timeRangeSec } from './main.js';
 
 export function setupUI() {
-  // 必要に応じてmain.jsからUI初期化・ボタン・CSV保存等の処理を移植してください
+  // UI初期化はmain.jsで関数化されているため、ここでは何もせず、必要ならmain.jsの関数を呼び出す
 }
