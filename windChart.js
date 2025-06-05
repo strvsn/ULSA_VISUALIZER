@@ -2,6 +2,8 @@ export let windChart = null;
 export const windChartCanvas = document.getElementById('windChart');
 let followLatestEnabled = true;
 
+import { drawWindGauge } from './main.js';
+
 export function setupWindChart() {
   if (!windChartCanvas || !window.Chart) return;
   // Chart.jsプラグイン登録（autoScalePluginは省略可）
@@ -185,7 +187,7 @@ export function setupAxisWheelZoom() {
 // export function setupChartUI(...) { ... }
 
 export function updateWindChart(speed, direction, noseWind, soundSpeed, soundTemp) {
-  import('./main.js').then(({ windHistory, MAX_HISTORY_POINTS, timeRangeSec, chartDrawingEnabled, addLogData }) => {
+  import('./main.js').then(({ windHistory, MAX_HISTORY_POINTS, timeRangeSec, chartDrawingEnabled, addLogData, updateRealtimeValues }) => {
     if (!windChart) return;
     const now = new Date();
     const entry = {
@@ -224,5 +226,24 @@ export function updateWindChart(speed, direction, noseWind, soundSpeed, soundTem
       windChart.options.animation = false;
       windChart.update('none');
     }
+
+    // 追加: 数値表示枠の値を更新
+    import('./main.js').then(({ updateRealtimeValues }) => {
+      // 10分間平均風速を計算
+      let avg10minWind = '--';
+      try {
+        const tenMinAgo = new Date(now.getTime() - 10 * 60 * 1000);
+        const arr = windHistory.filter(e => e.time >= tenMinAgo && e.time <= now && isFinite(e.speed));
+        if (arr.length > 0) {
+          avg10minWind = arr.reduce((sum, e) => sum + Number(e.speed), 0) / arr.length;
+        }
+        updateRealtimeValues(noseWind, soundSpeed, soundTemp, avg10minWind);
+        // 風速ゲージの描画（最新の風速値）
+        drawWindGauge(Number(speed));
+      } catch {
+        updateRealtimeValues(noseWind, soundSpeed, soundTemp, avg10minWind);
+        drawWindGauge(Number(speed));
+      }
+    });
   });
 }

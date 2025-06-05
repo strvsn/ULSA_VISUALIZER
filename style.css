@@ -44,6 +44,15 @@ pre {
   font-size: 0.9em;
   text-align: left;
 }
+/* グラフ・コンソール枠の統一感 */
+#chartArea, #consoleArea {
+  background: #fff;
+  border-radius: 0.75rem;
+  box-shadow: 0 0.25rem 1rem rgba(0,0,0,0.08);
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+}
+
 #chartArea {
   position: relative;
 }
@@ -53,18 +62,104 @@ pre {
   z-index: 10;
   pointer-events: auto;
   margin-bottom: 0.5rem;
+  align-items: stretch !important;
+  min-height: 48px;
 }
 #chartControlRow .btn-group,
 #chartControlRow button {
   pointer-events: auto;
-  height: 32px;
-  font-size: 1em;
-  padding-top: 0.15em;
-  padding-bottom: 0.15em;
+  height: 48px !important;
+  display: flex;
+  align-items: center;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
 }
+#chartControlRow .btn-group .btn {
+  height: 48px !important;
+  display: flex;
+  align-items: center;
+}
+
 #zoomResetBtn {
   height: 32px;
   font-size: 1em;
   padding-top: 0.15em;
   padding-bottom: 0.15em;
+}
+
+#chartControlRow .btn,
+#chartControlRow .btn-group .btn {
+  height: 2.1rem;
+  line-height: 2.1rem;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+#deviceConsole {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 0.5rem;
+  font-family: "Menlo", "Consolas", monospace;
+  font-size: 0.95em;
+  height: 120px;
+  overflow: auto;
+  margin-top: 0.5rem;
+}
+
+#consoleArea button {
+  min-width: 110px;
+}
+
+/* 予約枠（将来機能追加用） */
+.reserved-box {
+  background: #fff;
+  border-radius: 0.75rem;
+  box-shadow: 0 0.25rem 1rem rgba(0,0,0,0.08);
+  padding: 2.5rem 1rem;
+  text-align: center;
+  font-size: 2rem;
+  min-height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 767px) {
+  .reserved-box {
+    font-size: 1.3rem;
+    padding: 1.5rem 0.5rem;
+    min-height: 100px;
+  }
+}
+
+/* タイトルと接続ボタンの間隔調整 */
+#mainContainer .row.align-items-center > .col-md-9 {
+  display: flex;
+  align-items: center;
+}
+#mainContainer .row.align-items-center > .col-md-3 {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+#connectBtn {
+  color: #fff !important;
+  background-color: #0d6efd !important;
+  border-color: #0d6efd !important;
+}
+#connectBtn:hover, #connectBtn:focus {
+  background-color: #0b5ed7 !important;
+  border-color: #0a58ca !important;
+  color: #fff !important;
+}
+#disconnectBtn {
+  color: #fff !important;
+  background-color: #6c757d !important;
+  border-color: #6c757d !important;
+}
+#disconnectBtn:hover, #disconnectBtn:focus {
+  background-color: #495057 !important;
+  border-color: #495057 !important;
+  color: #fff !important;
 }

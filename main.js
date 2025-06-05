@@ -159,7 +159,15 @@ function initDeviceConsole() {
   window.appendDeviceConsole = (msg, type = 'recv') => {
     if (!deviceConsole) return;
     const prefix = type === 'send' ? '[SEND] ' : '[RECV] ';
-    deviceConsole.textContent += prefix + msg + '\n';
+    // 1メッセージごとに必ず新しい行で表示（空行は無視）
+    msg.split(/\r?\n/).forEach(line => {
+      if (line.length > 0) {
+        deviceConsole.textContent += prefix + line + '\n';
+      }
+    });
+    // 表示を必ず1行ごとにするため、textContentを一度行単位で再構成
+    const lines = deviceConsole.textContent.split(/\n/).filter(l => l.length > 0);
+    deviceConsole.textContent = lines.map(l => l.trim()).join('\n') + '\n';
     deviceConsole.scrollTop = deviceConsole.scrollHeight;
   };
 }
@@ -192,6 +200,8 @@ document.addEventListener('DOMContentLoaded', () => {
   initLogButtonsAndInfo();
   initDeviceConsole();
   initChartStartStopButtons();
+  // FPSフック
+  setTimeout(hookChartFps, 500);
 });
 
 // <script type="module" src="main.js"></script>
@@ -216,4 +226,112 @@ export function addLogData(entry) {
       });
     }
   }
+}
+
+// updateWindChartから呼び出される、数値表示枠の値を更新する関数
+export function updateRealtimeValues(noseWind, soundSpeed, soundTemp, avg10minWind) {
+  const noseWindSpan = document.getElementById('noseWindValue');
+  const soundSpeedSpan = document.getElementById('soundSpeedValue');
+  const soundTempSpan = document.getElementById('soundTempValue');
+  const avg10minWindSpan = document.getElementById('avg10minWindValue');
+  if (noseWindSpan) noseWindSpan.textContent = isFinite(noseWind) ? Number(noseWind).toFixed(2) : '--';
+  if (soundSpeedSpan) soundSpeedSpan.textContent = isFinite(soundSpeed) ? Number(soundSpeed).toFixed(2) : '--';
+  if (soundTempSpan) soundTempSpan.textContent = isFinite(soundTemp) ? Number(soundTemp).toFixed(2) : '--';
+  if (avg10minWindSpan) avg10minWindSpan.textContent = isFinite(avg10minWind) ? Number(avg10minWind).toFixed(2) : '--';
+}
+
+// シンプルなアーク型ゲージを描画する関数
+// Chart.jsのグローバル変数を利用する形に修正
+let gaugeChart = null;
+
+export function drawWindGauge(value, min = 0, max = 0.5) {
+  const canvas = document.getElementById('gaugeCanvas');
+  const valueDiv = document.getElementById('gaugeValue');
+  if (!canvas || !canvas.getContext) return;
+  // ==== 高DPI対応: ぼやけ防止 ====
+  const dpr = window.devicePixelRatio || 1;
+  const cssW = 180;
+  const cssH = 180;
+  if (canvas.width !== cssW * dpr || canvas.height !== cssH * dpr) {
+    canvas.width = cssW * dpr;
+    canvas.height = cssH * dpr;
+    canvas.style.width = cssW + 'px';
+    canvas.style.height = cssH + 'px';
+  }
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(1, 0, 0, 1, 0, 0); // リセット
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, cssW, cssH);
+
+  // ==== アーク描画パラメータ ====
+  const w = cssW, h = cssH;
+  const centerX = w / 2, centerY = h / 2 + 8; // ゲージを下寄せ
+  const arcRadius = 64; // 180*0.38=68.4だが整数で
+  const arcWidth = 18;
+  // 左下(225°)→右下(495°)の時計回り270°
+  const startDeg = 225;
+  const sweepDeg = 270;
+  const startRad = (startDeg * Math.PI) / 180;
+  const sweepRad = (sweepDeg * Math.PI) / 180;
+  const endRad = startRad + sweepRad;
+
+  // ==== グレー背景アーク ====
+  ctx.save();
+  ctx.lineWidth = arcWidth;
+  ctx.strokeStyle = '#eee';
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, arcRadius, startRad, endRad, false);
+  ctx.stroke();
+  ctx.restore();
+
+  // ==== 青い値アーク ====
+  if (isFinite(value) && value >= min) {
+    const percent = Math.max(0, Math.min(1, (value - min) / (max - min)));
+    const valueEndRad = startRad + sweepRad * percent;
+    ctx.save();
+    ctx.lineWidth = arcWidth;
+    ctx.strokeStyle = '#0d6efd';
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, arcRadius, startRad, valueEndRad, false);
+    ctx.stroke();
+    ctx.restore();
+  }
+  // ==== 上部中央に「風速」ラベル ====
+  ctx.save();
+  ctx.font = '2rem Arial, sans-serif';
+  ctx.fillStyle = '#222';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  ctx.fillText('風速', w / 2, 10);
+  ctx.restore();
+  // ==== 中央の値と単位 ====
+  if (valueDiv) {
+    valueDiv.innerHTML =
+      (isFinite(value) ? value.toFixed(2) : '--') +
+      '<div style="font-size:1.1rem;color:#666;margin-top:0.2em;">m/s</div>';
+  }
+}
+
+// FPS計測・表示
+let lastFpsTime = performance.now();
+let frameCount = 0;
+function reportFps() {
+  frameCount++;
+  const now = performance.now();
+  if (now - lastFpsTime >= 1000) {
+    const fps = frameCount / ((now - lastFpsTime) / 1000);
+    if (window.appendDeviceConsole) {
+      window.appendDeviceConsole(`FPS: ${fps.toFixed(1)}`, 'debug');
+    } else {
+      console.debug(`FPS: ${fps.toFixed(1)}`);
+    }
+    frameCount = 0;
+    lastFpsTime = now;
+  }
+}
+// Chart.jsの描画ごとにFPSを計測
+function hookChartFps() {
+  // 何もしない（ゲージはChart.js非依存になったため）
 }
