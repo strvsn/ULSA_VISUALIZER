@@ -12,6 +12,10 @@ import {
   updateRealtimeValues
 } from './main.js';
 
+// --- グラフ更新間隔制御 ---
+let lastChartUpdate = 0;
+const CHART_UPDATE_INTERVAL_MS = 200; // 最大5fps
+
 // 10分平均風速計算用のスライディングウィンドウ
 let tenMinData = [];
 let tenMinSum = 0;
@@ -121,6 +125,11 @@ export function setupWindChart() {
             y3: { min: 250, max: 400 },
             yTemp: { min: -20, max: 60 }
           }
+        },
+        decimation: {
+          enabled: true,
+          algorithm: 'lttb',
+          samples: 1000
         },
         tooltip: {
           enabled: true,
@@ -252,7 +261,11 @@ export function updateWindChart(speed, direction, noseWind, soundSpeed, soundTem
     windChart.options.scales.x.max = now;
 
     windChart.options.animation = false;
-    windChart.update('none');
+    const nowPerf = performance.now();
+    if (nowPerf - lastChartUpdate >= CHART_UPDATE_INTERVAL_MS) {
+      windChart.update('none');
+      lastChartUpdate = nowPerf;
+    }
   }
 
   // 追加: 数値表示枠の値を更新
