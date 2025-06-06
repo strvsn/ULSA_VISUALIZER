@@ -156,18 +156,21 @@ function initDeviceConsole() {
     if (mainContainer) mainContainer.appendChild(deviceConsole);
     else document.body.appendChild(deviceConsole);
   }
+  const MAX_CONSOLE_LINES = 500;
+  let consoleLines = [];
   window.appendDeviceConsole = (msg, type = 'recv') => {
     if (!deviceConsole) return;
-    const prefix = type === 'send' ? '[SEND] ' : '[RECV] ';
-    // 1メッセージごとに必ず新しい行で表示（空行は無視）
+    const prefix = type === 'send' ? '[SEND] ' : type === 'debug' ? '[DBG] ' : '[RECV] ';
     msg.split(/\r?\n/).forEach(line => {
+      line = line.trim();
       if (line.length > 0) {
-        deviceConsole.textContent += prefix + line + '\n';
+        consoleLines.push(prefix + line);
       }
     });
-    // 表示を必ず1行ごとにするため、textContentを一度行単位で再構成
-    const lines = deviceConsole.textContent.split(/\n/).filter(l => l.length > 0);
-    deviceConsole.textContent = lines.map(l => l.trim()).join('\n') + '\n';
+    if (consoleLines.length > MAX_CONSOLE_LINES) {
+      consoleLines.splice(0, consoleLines.length - MAX_CONSOLE_LINES);
+    }
+    deviceConsole.textContent = consoleLines.join('\n') + '\n';
     deviceConsole.scrollTop = deviceConsole.scrollHeight;
   };
 }
