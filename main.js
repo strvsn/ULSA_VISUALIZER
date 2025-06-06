@@ -99,7 +99,7 @@ function initLogButtonsAndInfo() {
     }
     const now = new Date();
     const durationSec = Math.floor((now - window.logStartTime) / 1000);
-    import('./chart.js').then(mod => {
+    import('./utils.js').then(mod => {
       const formatBytes = mod.formatBytes || (b => `${b} B`);
       window.logInfoDiv.textContent = `記録時間: ${durationSec} 秒　データ容量: ${formatBytes(window.logByteSize)}`;
     });
@@ -220,7 +220,7 @@ export function addLogData(entry) {
     if (window.logInfoDiv) {
       const now = new Date();
       const durationSec = Math.floor((now - window.logStartTime) / 1000);
-      import('./chart.js').then(mod => {
+      import('./utils.js').then(mod => {
         const formatBytes = mod.formatBytes || (b => `${b} B`);
         window.logInfoDiv.textContent = `記録時間: ${durationSec} 秒　データ容量: ${formatBytes(window.logByteSize)}`;
       });
