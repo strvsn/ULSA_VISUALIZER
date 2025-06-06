@@ -2,7 +2,15 @@ export let windChart = null;
 export const windChartCanvas = document.getElementById('windChart');
 let followLatestEnabled = true;
 
-import { drawWindGauge } from './main.js';
+import {
+  drawWindGauge,
+  windHistory,
+  MAX_HISTORY_POINTS,
+  timeRangeSec,
+  chartDrawingEnabled,
+  addLogData,
+  updateRealtimeValues
+} from './main.js';
 
 // 10分平均風速計算用のスライディングウィンドウ
 let tenMinData = [];
@@ -197,72 +205,67 @@ export function setupAxisWheelZoom() {
 // windChart.jsではなくmain.jsで行われます。
 
 export function updateWindChart(speed, direction, noseWind, soundSpeed, soundTemp) {
-  import('./main.js').then(({ windHistory, MAX_HISTORY_POINTS, timeRangeSec, chartDrawingEnabled, addLogData, updateRealtimeValues }) => {
-    if (!windChart) return;
-    const now = new Date();
-    const entry = {
-      time: now,
-      speed: Number(speed),
-      direction: Number(direction),
-      noseWind: Number(noseWind),
-      soundSpeed: Number(soundSpeed),
-      soundTemp: Number(soundTemp)
-    };
-    windHistory.push(entry);
-    if (typeof addLogData === 'function') addLogData(entry);
-    if (windHistory.length > MAX_HISTORY_POINTS) windHistory.shift();
+  if (!windChart) return;
+  const now = new Date();
+  const entry = {
+    time: now,
+    speed: Number(speed),
+    direction: Number(direction),
+    noseWind: Number(noseWind),
+    soundSpeed: Number(soundSpeed),
+    soundTemp: Number(soundTemp)
+  };
+  windHistory.push(entry);
+  if (typeof addLogData === 'function') addLogData(entry);
+  if (windHistory.length > MAX_HISTORY_POINTS) windHistory.shift();
 
-    // --- 10分平均計算用スライディングウィンドウ更新 ---
-    if (isFinite(entry.speed)) {
-      tenMinData.push({ time: now, speed: entry.speed });
-      tenMinSum += entry.speed;
-    }
-    const tenMinAgo = new Date(now.getTime() - 10 * 60 * 1000);
-    while (tenMinData.length && tenMinData[0].time < tenMinAgo) {
-      tenMinSum -= tenMinData[0].speed;
-      tenMinData.shift();
-    }
+  // --- 10分平均計算用スライディングウィンドウ更新 ---
+  if (isFinite(entry.speed)) {
+    tenMinData.push({ time: now, speed: entry.speed });
+    tenMinSum += entry.speed;
+  }
+  const tenMinAgo = new Date(now.getTime() - 10 * 60 * 1000);
+  while (tenMinData.length && tenMinData[0].time < tenMinAgo) {
+    tenMinSum -= tenMinData[0].speed;
+    tenMinData.shift();
+  }
 
-    if (chartDrawingEnabled) {
-      // --- x軸目盛り幅を伸縮させず、常にスクロール表示 ---
-      windChart.data.labels.push(now);
-      windChart.data.datasets[0].data.push(Number(speed));
-      windChart.data.datasets[1].data.push(Number(direction));
-      windChart.data.datasets[2].data.push(Number(noseWind));
-      windChart.data.datasets[3].data.push(Number(soundSpeed));
-      windChart.data.datasets[4].data.push(Number(soundTemp));
+  if (chartDrawingEnabled) {
+    // --- x軸目盛り幅を伸縮させず、常にスクロール表示 ---
+    windChart.data.labels.push(now);
+    windChart.data.datasets[0].data.push(Number(speed));
+    windChart.data.datasets[1].data.push(Number(direction));
+    windChart.data.datasets[2].data.push(Number(noseWind));
+    windChart.data.datasets[3].data.push(Number(soundSpeed));
+    windChart.data.datasets[4].data.push(Number(soundTemp));
 
       // データ数が多すぎる場合は古いデータを削除
-      const maxPoints = MAX_HISTORY_POINTS;
-      if (windChart.data.labels.length > maxPoints) {
-        windChart.data.labels.shift();
-        windChart.data.datasets.forEach(ds => ds.data.shift());
-      }
-
-      // x軸min/maxを固定し、常に最新データが右端に来るようにスクロール
-      const minTime = new Date(now.getTime() - timeRangeSec * 1000);
-      windChart.options.scales.x.min = minTime;
-      windChart.options.scales.x.max = now;
-
-      windChart.options.animation = false;
-      windChart.update('none');
+    const maxPoints = MAX_HISTORY_POINTS;
+    if (windChart.data.labels.length > maxPoints) {
+      windChart.data.labels.shift();
+      windChart.data.datasets.forEach(ds => ds.data.shift());
     }
 
-    // 追加: 数値表示枠の値を更新
-    import('./main.js').then(({ updateRealtimeValues }) => {
-      // 10分間平均風速を計算（スライディングウィンドウ）
-      let avg10minWind = '--';
-      try {
-        if (tenMinData.length > 0) {
-          avg10minWind = tenMinSum / tenMinData.length;
-        }
-        updateRealtimeValues(noseWind, soundSpeed, soundTemp, avg10minWind);
-        // 風速ゲージの描画（最新の風速値）
-        drawWindGauge(Number(speed));
-      } catch {
-        updateRealtimeValues(noseWind, soundSpeed, soundTemp, avg10minWind);
-        drawWindGauge(Number(speed));
-      }
-    });
-  });
+      // x軸min/maxを固定し、常に最新データが右端に来るようにスクロール
+    const minTime = new Date(now.getTime() - timeRangeSec * 1000);
+    windChart.options.scales.x.min = minTime;
+    windChart.options.scales.x.max = now;
+
+    windChart.options.animation = false;
+    windChart.update('none');
+  }
+
+  // 追加: 数値表示枠の値を更新
+  let avg10minWind = '--';
+  try {
+    if (tenMinData.length > 0) {
+      avg10minWind = tenMinSum / tenMinData.length;
+    }
+    updateRealtimeValues(noseWind, soundSpeed, soundTemp, avg10minWind);
+    // 風速ゲージの描画（最新の風速値）
+    drawWindGauge(Number(speed));
+  } catch {
+    updateRealtimeValues(noseWind, soundSpeed, soundTemp, avg10minWind);
+    drawWindGauge(Number(speed));
+  }
 }
