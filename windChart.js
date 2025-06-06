@@ -4,6 +4,10 @@ let followLatestEnabled = true;
 
 import { drawWindGauge } from './main.js';
 
+// 10分平均風速計算用のスライディングウィンドウ
+let tenMinData = [];
+let tenMinSum = 0;
+
 export function setupWindChart() {
   if (!windChartCanvas || !window.Chart) return;
   // Chart.jsプラグイン登録（autoScalePluginは省略可）
@@ -211,6 +215,17 @@ export function updateWindChart(speed, direction, noseWind, soundSpeed, soundTem
     if (typeof addLogData === 'function') addLogData(entry);
     if (windHistory.length > MAX_HISTORY_POINTS) windHistory.shift();
 
+    // --- 10分平均計算用スライディングウィンドウ更新 ---
+    if (isFinite(entry.speed)) {
+      tenMinData.push({ time: now, speed: entry.speed });
+      tenMinSum += entry.speed;
+    }
+    const tenMinAgo = new Date(now.getTime() - 10 * 60 * 1000);
+    while (tenMinData.length && tenMinData[0].time < tenMinAgo) {
+      tenMinSum -= tenMinData[0].speed;
+      tenMinData.shift();
+    }
+
     if (chartDrawingEnabled) {
       // --- x軸目盛り幅を伸縮させず、常にスクロール表示 ---
       windChart.data.labels.push(now);
@@ -238,13 +253,11 @@ export function updateWindChart(speed, direction, noseWind, soundSpeed, soundTem
 
     // 追加: 数値表示枠の値を更新
     import('./main.js').then(({ updateRealtimeValues }) => {
-      // 10分間平均風速を計算
+      // 10分間平均風速を計算（スライディングウィンドウ）
       let avg10minWind = '--';
       try {
-        const tenMinAgo = new Date(now.getTime() - 10 * 60 * 1000);
-        const arr = windHistory.filter(e => e.time >= tenMinAgo && e.time <= now && isFinite(e.speed));
-        if (arr.length > 0) {
-          avg10minWind = arr.reduce((sum, e) => sum + Number(e.speed), 0) / arr.length;
+        if (tenMinData.length > 0) {
+          avg10minWind = tenMinSum / tenMinData.length;
         }
         updateRealtimeValues(noseWind, soundSpeed, soundTemp, avg10minWind);
         // 風速ゲージの描画（最新の風速値）
