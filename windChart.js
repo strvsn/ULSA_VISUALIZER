@@ -122,6 +122,11 @@ export function setupWindChart() {
             yTemp: { min: -20, max: 60 }
           }
         },
+        decimation: {
+          enabled: true,
+          algorithm: 'lttb',
+          samples: 1000
+        },
         tooltip: {
           enabled: true,
           callbacks: {
