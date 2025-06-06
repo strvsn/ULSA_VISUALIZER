@@ -193,11 +193,8 @@ export function setupAxisWheelZoom() {
   // ...existing code...
 }
 
-// タイムスケールボタンとCSV保存ボタンの機能をwindChart.jsではなくmain.jsで初期化してください。
-// windChart.jsからsetupChartUIは削除し、main.jsで下記のように記述してください。
-
-// --- windChart.jsからは下記を削除してください ---
-// export function setupChartUI(...) { ... }
+// タイムスケールボタンやCSV保存ボタンなどのUI初期化は
+// windChart.jsではなくmain.jsで行われます。
 
 export function updateWindChart(speed, direction, noseWind, soundSpeed, soundTemp) {
   import('./main.js').then(({ windHistory, MAX_HISTORY_POINTS, timeRangeSec, chartDrawingEnabled, addLogData, updateRealtimeValues }) => {
