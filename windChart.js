@@ -68,8 +68,14 @@ export function setupWindChart() {
       animation: false,
       responsive: true,
       maintainAspectRatio: true,
+      aspectRatio: 1.8, // 横長で文字がつぶれにくい
       plugins: {
-        legend: { display: true },
+        legend: {
+          display: true,
+          labels: {
+            font: { size: 14 }
+          }
+        },
         zoom: {
           pan: {
             enabled: true,
@@ -110,7 +116,9 @@ export function setupWindChart() {
             label: function(context) {
               return `${context.dataset.label}: ${context.parsed.y}`;
             }
-          }
+          },
+          titleFont: { size: 14 },
+          bodyFont: { size: 14 }
         }
       },
       scales: {
@@ -122,17 +130,18 @@ export function setupWindChart() {
             displayFormats: { second: 'HH:mm:ss' },
             stepSize: 1
           },
-          title: { display: true, text: '時刻' },
+          title: { display: true, text: '時刻', font: { size: 14 } },
           min: null,
           max: null,
-          ticks: { autoSkip: false, maxTicksLimit: 20, stepSize: 1, source: 'auto' },
+          ticks: { autoSkip: false, maxTicksLimit: 20, stepSize: 1, source: 'auto', font: { size: 14 } },
           grid: { display: true, drawOnChartArea: true }
         },
         y: {
           beginAtZero: true,
-          title: { display: true, text: '風速 (m/s)' },
+          title: { display: true, text: '風速 (m/s)', font: { size: 14 } },
           min: 0,
-          max: 1
+          max: 1,
+          ticks: { font: { size: 14 } }
         },
         yTemp: {
           type: 'linear',
@@ -140,9 +149,9 @@ export function setupWindChart() {
           position: 'left',
           min: -20,
           max: 60,
-          title: { display: true, text: '温度 (℃)' },
+          title: { display: true, text: '温度 (℃)', font: { size: 14 } },
           grid: { drawOnChartArea: false },
-          ticks: { stepSize: 20 }
+          ticks: { stepSize: 20, font: { size: 14 } }
         },
         y2: {
           type: 'linear',
@@ -150,9 +159,9 @@ export function setupWindChart() {
           position: 'right',
           min: 0,
           max: 360,
-          title: { display: true, text: '風向 (°)' },
+          title: { display: true, text: '風向 (°)', font: { size: 14 } },
           grid: { drawOnChartArea: false },
-          ticks: { stepSize: 90 }
+          ticks: { stepSize: 90, font: { size: 14 } }
         },
         y3: {
           type: 'linear',
@@ -160,9 +169,9 @@ export function setupWindChart() {
           position: 'right',
           min: 250,
           max: 400,
-          title: { display: true, text: '音速 (m/s)' },
+          title: { display: true, text: '音速 (m/s)', font: { size: 14 } },
           grid: { drawOnChartArea: false },
-          ticks: { stepSize: 50 }
+          ticks: { stepSize: 50, font: { size: 14 } }
         }
       },
       layout: { padding: 0 }
