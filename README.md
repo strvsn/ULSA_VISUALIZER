@@ -16,3 +16,11 @@
 ## 参考
 - [GitHub Pages 公式ドキュメント](https://docs.github.com/ja/pages)
 - [Web Serial API (MDN)](https://developer.mozilla.org/ja/docs/Web/API/Serial)
+
+## テスト
+
+このリポジトリには自動テスト環境が用意されていません。
+そのため `npm test` を実行してもスクリプトは存在せず、
+エラーになります。
+ブラウザで `index.html` を開き、UI やシリアル接続機能が
+期待どおりに動作するかを確認してください。
