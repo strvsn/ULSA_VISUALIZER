@@ -52,7 +52,7 @@ function initSerialButtons() {
   const disconnectBtn = document.getElementById('disconnectBtn');
   if (connectBtn) {
     connectBtn.classList.add('btn', 'btn-primary', 'mb-3', 'ms-2');
-    connectBtn.innerHTML = `<i class="bi bi-usb-symbol"></i> 接続`;
+    connectBtn.innerHTML = `<i class="bi bi-usb"></i> 接続`;
     connectBtn.disabled = false;
     connectBtn.onclick = connectSerial;
   }
