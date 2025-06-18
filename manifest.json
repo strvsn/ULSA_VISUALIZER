@@ -1,0 +1,21 @@
+{
+  "name": "ULSA VISUALIZER",
+  "short_name": "ULSA VISUALIZER",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#007bff",
+  "description": "リアルタイム風データ可視化システム - Web Serial APIを使用した風速・風向データの取得・記録・可視化アプリケーション",
+  "icons": [
+    {
+      "src": "images/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "images/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

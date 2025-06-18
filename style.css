@@ -1,0 +1,722 @@
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  margin: 40px;
+}
+/* canvas全体にはborder-radiusを適用しない */
+canvas {
+  display: block;
+  max-width: 100%;
+}
+
+/* Keep other canvas elements transparent */
+canvas:not(#gaugeCanvas) {
+  background: transparent !important;
+}
+
+/* Wind gauge canvas specific positioning */
+#gaugeCanvas {
+  margin: 0 auto;
+  display: block;
+  position: relative;
+  z-index: 1;
+  background: transparent !important;
+}
+
+/* Specific gauge container styling */
+.gauge-container {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-direction: column !important;
+  min-height: 400px;
+  padding: 1rem !important;
+  background-color: #f8f9fa !important; /* Light gray background to match canvas */
+}
+
+/* Dark mode gauge container background */
+[data-bs-theme="dark"] .gauge-container {
+  background-color: #343a40 !important;
+}
+
+/* Gauge wrapper for perfect centering */
+.gauge-wrapper {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 360px !important;
+}
+
+/* Ensure absolutely positioned elements are relative to the centered canvas */
+.gauge-container > div[style*="position:absolute"] {
+  position: absolute !important;
+}
+
+#windCanvas {
+  border-radius: 50%;
+}
+#windChart {
+  border-radius: 0;
+  background: transparent !important;
+  display: block;
+  width: 100% !important;
+  height: 360px !important;
+  max-width: 100%;
+  max-height: 360px;
+}
+button {
+  margin: 1em 0;
+  font-size: 1.2em;
+}
+pre {
+  background: #222;
+  color: #b4ffb4;
+  padding: 10px;
+  width: 100%;
+  margin: 0 auto;
+  max-height: 120px;
+  overflow-y: auto;
+  font-size: 0.9em;
+  text-align: left;
+}
+/* グラフ・コンソール枠の統一感（シャドウなし） */
+#chartArea, #consoleArea {
+  background: #fff;
+  border-radius: 0.75rem;
+  margin-bottom: 0.5rem;
+  padding: 0.5rem;
+}
+
+#chartArea {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+#chartControlRow {
+  position: static;
+  width: 100%;
+  z-index: 10;
+  pointer-events: auto;
+  margin-bottom: 0.5rem;
+  margin-top: 60px;
+  align-items: stretch !important;
+  height: 30px;
+  /* gapやpaddingはHTML側のクラス指定に従う */
+}
+#chartControlRow.d-flex {
+  gap: 0.5rem !important;
+}
+#chartControlRow .btn-group,
+#chartControlRow button {
+  pointer-events: auto;
+  height: 48px !important;
+  display: flex;
+  align-items: center;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+#chartControlRow .btn-group .btn {
+  height: 48px !important;
+  display: flex;
+  align-items: center;
+}
+
+#zoomResetBtn {
+  height: 32px;
+  font-size: 1em;
+  padding-top: 0.15em;
+  padding-bottom: 0.15em;
+}
+
+#chartControlRow .btn, #chartControlRow .time-range-btn {
+  height: 32px !important;
+  min-height: 32px !important;
+  max-height: 32px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  line-height: 32px !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  box-sizing: border-box;
+}
+
+#chartControlRow .btn-group {
+  height: 32px !important;
+  align-items: center;
+}
+
+#deviceConsole {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 0.5rem;
+  font-family: "Menlo", "Consolas", monospace;
+  font-size: 0.95em;
+  height: 120px;
+  overflow: auto;
+  margin-top: 0.5rem;
+}
+
+#consoleArea button {
+  min-width: 110px;
+}
+
+/* 予約枠（将来機能追加用）（シャドウなし） */
+.reserved-box {
+  background: #fff;
+  border-radius: 0.75rem;
+  padding: 2.5rem 1rem;
+  text-align: center;
+  font-size: 2rem;
+  min-height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 767px) {
+  .reserved-box {
+    font-size: 1.3rem;
+    padding: 1.5rem 0.5rem;
+    min-height: 100px;
+  }
+  
+  /* モバイルでのボタン配置調整 */
+  .col-12.col-md-6.text-md-end.d-flex {
+    justify-content: center !important;
+    flex-wrap: wrap;
+    gap: 0.5rem !important;
+    margin-top: 1rem;
+  }
+  
+  #connectBtn, #disconnectBtn {
+    flex: 1;
+    min-width: 100px;
+    max-width: 120px;
+  }
+  
+  #darkModeBtn {
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    min-height: 48px !important;
+    max-width: 48px !important;
+    max-height: 48px !important;
+  }
+}
+
+/* タイトルと接続ボタンの間隔調整 */
+#mainContainer .row.align-items-center > .col-md-9 {
+  display: flex;
+  align-items: center;
+}
+#mainContainer .row.align-items-center > .col-md-3 {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+#connectBtn {
+  color: #fff !important;
+  background-color: #0d6efd !important;
+  border-color: #0d6efd !important;
+}
+#connectBtn:hover, #connectBtn:focus {
+  background-color: #0b5ed7 !important;
+  border-color: #0a58ca !important;
+  color: #fff !important;
+}
+#disconnectBtn {
+  color: #fff !important;
+  background-color: #6c757d !important;
+  border-color: #6c757d !important;
+}
+#disconnectBtn:hover, #disconnectBtn:focus {
+  background-color: #495057 !important;
+  border-color: #495057 !important;
+  color: #fff !important;
+}
+
+#connectBtn, #disconnectBtn {
+  width: calc(100% - 20px) !important;
+  max-width: calc(200px - 20px);
+  min-width: 0;
+}
+
+/* ダークモードボタンの統一 */
+#darkModeBtn {
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  min-height: 48px !important;
+  max-width: 48px !important;
+  max-height: 48px !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* ヘッダーボタン群の統一間隔とサイズ */
+.col-12.col-md-6.text-md-end.d-flex {
+  gap: 0.75rem !important;
+}
+
+/* 接続・切断ボタンとダークモードボタンの高さを統一 */
+#connectBtn, #disconnectBtn, #darkModeBtn {
+  height: 48px !important;
+  min-height: 48px !important;
+  max-height: 48px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  vertical-align: top !important; /* ベースライン調整 */
+  line-height: 1 !important; /* ライン高さを統一 */
+}
+
+/* タイムスケールボタン中央揃え */
+.time-range-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* ボタンの上下中央揃えでズレ解消 */
+.time-range-btn, #zoomResetBtn, #chartToggleBtn {
+  height: 32px !important;
+  min-height: 32px !important;
+  max-height: 32px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  line-height: 32px !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: top;
+  box-sizing: border-box;
+}
+
+/* --- ボタン群のy軸（上端）を揃える --- */
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start; /* 上端揃え */
+  gap: 0.5em;
+}
+
+.button-row > * {
+  margin: 0 !important;
+}
+
+#chartArea:fullscreen, #chartArea:-webkit-full-screen {
+  width: 100vw !important;
+  height: 100vh !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background: #fff !important; /* ライトモード時は白背景 */
+  z-index: 9999 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  border: none !important; /* ボーダーを削除 */
+}
+
+/* フルスクリーン時にBootstrapのbg-whiteクラスを無効化 */
+#chartArea:fullscreen.bg-white,
+#chartArea:-webkit-full-screen.bg-white {
+  background: #fff !important; /* 明示的に白背景を設定 */
+}
+
+/* ダークモード時のフルスクリーン背景 */
+[data-bs-theme="dark"] #chartArea:fullscreen,
+[data-bs-theme="dark"] #chartArea:-webkit-full-screen {
+  background: #212529 !important; /* ダークモード時は暗い背景 */
+}
+
+[data-bs-theme="dark"] #chartArea:fullscreen.bg-white,
+[data-bs-theme="dark"] #chartArea:-webkit-full-screen.bg-white {
+  background: #212529 !important; /* ダークモード時はbg-whiteを無効化 */
+}
+#chartArea:fullscreen .p-0.mb-0,
+#chartArea:-webkit-full-screen .p-0.mb-0 {
+  flex: 1 1 auto !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+  padding: 0 !important; /* パディングを完全に無効化 */
+  margin: 0 !important;
+  background: transparent !important; /* 背景を透明化 */
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  border: none !important; /* ボーダーを無効化 */
+  box-shadow: none !important; /* ボックスシャドウを無効化 */
+}
+
+/* フルスクリーン時のすべての子要素を透明化 */
+#chartArea:fullscreen *:not(#chartControlRow):not(#chartControlRow *):not(canvas),
+#chartArea:-webkit-full-screen *:not(#chartControlRow):not(#chartControlRow *):not(canvas) {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* フルスクリーン時のHTMLインラインスタイルを強制無効化 */
+#chartArea:fullscreen div[style],
+#chartArea:-webkit-full-screen div[style] {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+#chartArea:fullscreen canvas,
+#chartArea:-webkit-full-screen canvas {
+  width: 100vw !important;
+  height: calc(100vh - 100px) !important; /* ボタンエリア分をさらに大きく確保 */
+  max-width: 100vw !important;
+  max-height: calc(100vh - 100px) !important;
+  min-height: 400px !important;
+  min-width: 0 !important;
+  display: block;
+  flex: 1 1 auto !important;
+  margin: 0 !important; /* マージンを完全に削除 */
+  padding: 0 !important; /* パディングも削除 */
+  border: none !important; /* ボーダーを削除 */
+  background: transparent !important; /* 背景を透明化 */
+}
+
+/* 通常時のコントロールボタン行（背景なし） */
+#chartControlRow {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* フルスクリーン時のChart.js追加設定 */
+#chartArea:fullscreen #chartControlRow,
+#chartArea:-webkit-full-screen #chartControlRow {
+  position: absolute !important;
+  bottom: 20px !important; /* 画面下端から20pxの位置に固定配置 */
+  left: 50% !important;
+  transform: translate(-50%, 0) !important; /* X軸のみ中央揃え */
+  z-index: 1000 !important;
+  background: rgba(255, 255, 255, 0.95) !important; /* 背景をより不透明に */
+  padding: 12px 16px !important; /* パディングを増加 */
+  border-radius: 12px !important; /* 角を丸く */
+  box-shadow: none !important; /* シャドウを削除 */
+  backdrop-filter: blur(8px) !important; /* ブラー効果を追加 */
+}
+
+/* フルスクリーン時のボタンのbox-shadowを完全に無効化 */
+#chartArea:fullscreen #chartControlRow *,
+#chartArea:-webkit-full-screen #chartControlRow * {
+  box-shadow: none !important;
+}
+
+/* フルスクリーン時のボタンスタイルのリセット */
+#chartArea:fullscreen .btn,
+#chartArea:-webkit-full-screen .btn {
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+#chartArea:fullscreen .btn:hover,
+#chartArea:-webkit-full-screen .btn:hover {
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+/* ダークモード時のフルスクリーンコントロール */
+[data-bs-theme="dark"] #chartArea:fullscreen #chartControlRow,
+[data-bs-theme="dark"] #chartArea:-webkit-full-screen #chartControlRow {
+  background: rgba(52, 58, 64, 0.95) !important;
+  color: #ffffff !important;
+}
+
+/* ダークモード時のフルスクリーンチャートエリア */
+[data-bs-theme="dark"] #chartArea:fullscreen .p-0.mb-0,
+[data-bs-theme="dark"] #chartArea:-webkit-full-screen .p-0.mb-0 {
+  background: transparent !important; /* 背景を透明化 */
+}
+
+/* フルスクリーン時のcanvas座標修正 */
+#chartArea:fullscreen #windChart,
+#chartArea:-webkit-full-screen #windChart {
+  position: relative !important;
+  top: 0 !important;
+  left: 0 !important;
+  transform: none !important;
+  margin: 0 !important; /* マージンを完全に削除 */
+  padding: 0 !important; /* パディングを完全に削除 */
+  border: none !important;
+  outline: none !important;
+  background: transparent !important; /* 背景を透明化 */
+}
+
+.row.g-4.align-items-start.mb-3 > .col-12.col-md-3 > .bg-white.rounded.shadow.p-5.text-center.fs-3 {
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0.5rem;
+}
+
+/* ダークモード対応スタイル */
+[data-bs-theme="dark"] {
+  background-color: #212529 !important;
+  color: #ffffff !important;
+}
+
+[data-bs-theme="dark"] .bg-white {
+  background-color: #343a40 !important;
+  color: #ffffff !important;
+}
+
+[data-bs-theme="dark"] #chartArea {
+  background-color: #343a40 !important;
+  border: 1px solid #495057;
+}
+
+[data-bs-theme="dark"] #consoleArea {
+  background-color: #343a40 !important;
+  border: 1px solid #495057;
+}
+
+[data-bs-theme="dark"] #deviceConsole {
+  background: #495057 !important;
+  border: 1px solid #6c757d;
+  color: #00ff00;
+}
+
+/* ボタンのシャドウ効果を完全に削除 */
+.btn {
+  box-shadow: none !important;
+  transition: none !important;
+}
+
+.btn:hover {
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+/* gaugeMaxBtn specific styling - enable hover color change but prevent movement */
+#gaugeMaxBtn {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease !important;
+  transform: translate(-50%, -50%) !important; /* Keep original positioning */
+}
+
+#gaugeMaxBtn:hover {
+  background-color: #0d6efd !important; /* Primary blue background on hover */
+  border-color: #0d6efd !important;
+  color: white !important;
+  transform: translate(-50%, -50%) !important; /* Prevent movement on hover */
+  box-shadow: none !important;
+}
+
+[data-bs-theme="dark"] #gaugeMaxBtn:hover {
+  background-color: #5ba7ff !important; /* Lighter blue for dark mode */
+  border-color: #5ba7ff !important;
+  color: #212529 !important; /* Dark text on light blue background */
+  transform: translate(-50%, -50%) !important; /* Prevent movement on hover */
+  box-shadow: none !important;
+}
+
+/* gaugeMaxBtnのCSSルールを完全に削除してHTMLインラインスタイルを優先 */
+
+.btn-outline-primary:hover {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+  color: white;
+}
+
+.btn-outline-secondary:hover {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  color: white;
+}
+
+.btn-outline-success:hover {
+  background-color: #198754;
+  border-color: #198754;
+  color: white;
+}
+
+.btn-outline-danger:hover {
+  background-color: #dc3545;
+  border-color: #dc3545;
+  color: white;
+}
+
+.btn-outline-dark:hover {
+  background-color: #212529;
+  border-color: #212529;
+  color: white;
+}
+
+/* ダークモードボタンの特別なスタイル */
+#darkModeBtn:hover {
+  background-color: #212529 !important;
+  border-color: #212529 !important;
+  color: white !important;
+}
+
+[data-bs-theme="dark"] #darkModeBtn {
+  border-color: #adb5bd !important;
+  color: #adb5bd !important;
+}
+
+[data-bs-theme="dark"] #darkModeBtn:hover {
+  background-color: #adb5bd !important;
+  border-color: #adb5bd !important;
+  color: #343a40 !important;
+}
+
+.btn-outline-light:hover {
+  background-color: #f8f9fa;
+  border-color: #f8f9fa;
+  color: #212529;
+}
+
+/* ダークモード時のボタンスタイル */
+[data-bs-theme="dark"] .btn-outline-primary {
+  border-color: #5ba7ff;
+  color: #5ba7ff;
+}
+
+[data-bs-theme="dark"] .btn-outline-secondary {
+  border-color: #adb5bd;
+  color: #adb5bd;
+}
+
+[data-bs-theme="dark"] .btn-outline-success {
+  border-color: #5cbf5c;
+  color: #5cbf5c;
+}
+
+[data-bs-theme="dark"] .btn-outline-danger {
+  border-color: #e74c3c;
+  color: #e74c3c;
+}
+
+/* gaugeMaxBtnの全CSSルールを削除済み */
+
+/* コンソール画面の改善 */
+#deviceConsole {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+/* Bootstrap風トグルスイッチ */
+.chart-toggle-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 32px;
+}
+
+.chart-toggle-label {
+  font-size: 0.875rem;
+  color: var(--bs-body-color);
+  margin: 0;
+  white-space: nowrap;
+}
+
+.chart-toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 28px;
+}
+
+.chart-toggle-switch input {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.chart-toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #6c757d;
+  border: 1px solid #6c757d;
+  transition: all 0.2s ease;
+  border-radius: 0.375rem;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.chart-toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.2s ease;
+  border-radius: 0.25rem;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+input:checked + .chart-toggle-slider {
+  background-color: #198754;
+  border-color: #198754;
+}
+
+input:focus + .chart-toggle-slider {
+  box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
+  outline: none;
+}
+
+input:checked + .chart-toggle-slider:before {
+  transform: translateX(20px);
+}
+
+/* ダークモード対応 */
+[data-bs-theme="dark"] .chart-toggle-slider {
+  background-color: #495057;
+  border-color: #495057;
+}
+
+[data-bs-theme="dark"] input:checked + .chart-toggle-slider {
+  background-color: #198754;
+  border-color: #198754;
+}
+
+[data-bs-theme="dark"] .chart-toggle-slider:before {
+  background-color: #f8f9fa;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-bs-theme="dark"] input:focus + .chart-toggle-slider {
+  box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
+}
+
+/* トグルスイッチのホバー効果 */
+.chart-toggle-slider:hover {
+  opacity: 0.9;
+}

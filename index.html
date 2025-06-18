@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ULSA VISUALIZER - リアルタイム風データ可視化システム</title>
+  <meta name="description" content="Web Serial APIを使用したリアルタイム風速・風向データの取得・記録・可視化システム。Chart.jsとWebWorkerによる高性能データ処理に対応。">
+  <meta name="keywords" content="風速,風向,可視化,リアルタイム,データ記録,Web Serial API,Chart.js">
+  <meta name="author" content="STRVSN">
+  <link rel="stylesheet" href="style.css">
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- Google Fonts - Inter (シンプルな数字フォント) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- Chart.js v4 (必ずzoomより先に読み込む) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <!-- Chart.js Zoom Plugin v2 (Chart.js v4対応) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.2.0/chartjs-plugin-zoom.min.js" integrity="sha512-FRGbE3pigbYamZnw4+uT4t63+QJOfg4MXSgzPn2t8AWg9ofmFvZ/0Z37ZpCawjfXLBSVX2p2CncsmUH2hzsgJg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>  <!-- Chart.js date-fns adapter -->
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#007bff">
+  <link rel="apple-touch-icon" href="images/icon-192.png">
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('service-worker.js');
+      });
+    }
+  </script>
+</head>
+<body class="bg-light" id="bodyRoot">
+  <div class="container py-4" id="mainContainer">
+      <div class="row mb-3 align-items-center">
+        <div class="col-12 col-md-6 mb-2 mb-md-0">
+          <a href="." style="text-decoration:none;">
+            <img id="logoImg" src="images/ulsavis_logo_gray.png" alt="ULSA VISUALIZER" style="height:50px;vertical-align:middle;margin-top:-9px;">
+          </a>
+        </div>
+        <div class="col-12 col-md-6 text-md-end d-flex gap-2 justify-content-end align-items-start">
+          <button id="connectBtn" type="button" class="btn btn-outline-primary btn-lg"><i class="bi bi-usb"></i> 接続</button>
+          <button id="disconnectBtn" type="button" class="btn btn-outline-secondary btn-lg"><i class="bi bi-x-circle"></i> 切断</button>
+          <button id="darkModeBtn" type="button" class="btn btn-outline-dark btn-lg d-flex align-items-center justify-content-center"><i class="bi bi-moon"></i></button>
+        </div>
+      </div>
+      <div class="row mb-3">
+        <div class="col-12">
+          <div id="consoleArea" class="bg-white rounded shadow p-3 mb-2">
+            <div class="row g-2">
+              <div class="col-12 col-md-8">
+                <div class="console-display bg-light rounded p-2 mb-0" style="height:60px;overflow:auto;font-size:0.9em;" id="deviceConsole">
+                  <!-- シリアルデータ表示部 -->
+                </div>
+              </div>
+              <div class="col-12 col-md-4 d-flex flex-column align-items-end justify-content-between">
+                <div class="w-100 d-flex flex-row justify-content-end mb-2 gap-2">
+                  <button id="logStartBtn" type="button" class="btn btn-outline-success btn-sm"><i class="bi bi-record-circle"></i> ログ記録</button>
+                  <button id="logStopBtn" type="button" class="btn btn-outline-danger btn-sm"><i class="bi bi-stop-circle"></i> ログ停止</button>
+                </div>
+                <div id="logInfoDiv" class="text-secondary small w-100 text-end">記録時間・データ量</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row mb-3 g-3">
+        <div class="col-12 col-md-8">
+          <div id="chartArea" class="bg-white rounded shadow p-3 mb-2 position-relative h-100" style="overflow:hidden;">
+            <div class="p-0 mb-0" style="min-height:420px; position:relative; display:flex; flex-direction:column; justify-content:flex-end; height:420px;">
+              <canvas id="windChart" class="mb-0"></canvas>              <div class="d-flex flex-wrap justify-content-center align-items-center gap-2 mt-2" id="chartControlRow">                <div class="btn-group btn-group-sm" role="group" aria-label="タイムスケール">
+                  <button type="button" class="btn btn-outline-secondary time-range-btn" data-range="10">10秒</button>
+                  <button type="button" class="btn btn-outline-secondary time-range-btn" data-range="60">1分</button>
+                  <button type="button" class="btn btn-outline-secondary time-range-btn" data-range="900">15分</button>
+                  <button type="button" class="btn btn-outline-secondary time-range-btn" data-range="3600">1時間</button>
+                  <button type="button" class="btn btn-outline-secondary time-range-btn" data-range="21600">6時間</button>
+                </div>
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="zoomResetBtn">ズームリセット</button>
+                <div class="chart-toggle-container">
+                  <label class="chart-toggle-label">グラフ描画</label>
+                  <div class="chart-toggle-switch">
+                    <input type="checkbox" id="chartToggleBtn" checked>
+                    <span class="chart-toggle-slider"></span>
+                  </div>
+                </div>
+                <button id="chartFullscreenBtn" type="button" class="btn btn-outline-secondary btn-sm">
+                  <i class="bi bi-arrows-fullscreen me-1"></i> フルスクリーン
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-md-4">
+          <div class="bg-white rounded shadow p-3 position-relative h-100 gauge-container">
+            <div class="gauge-wrapper" style="position: relative; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
+              <canvas id="gaugeCanvas" width="340" height="340" style="display:block;"></canvas>
+              <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;z-index:2;">
+                <div id="gaugeValue" class="fw-bold" style="font-size:2.2rem;font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;">--</div>
+                <button id="gaugeUnitBtn" type="button" class="btn btn-outline-secondary btn-sm" style="font-size:0.8rem;margin-top:4px;min-width:45px;font-family:'Inter',sans-serif;border-radius:4px;">m/s</button>
+              </div>
+              <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);font-size:1.25rem;z-index:2;">風向・風速</div>
+              <!-- ゲージ最大値変更ボタン（ゲージの開口部分に配置） -->
+              <button id="gaugeMaxBtn" type="button" class="btn btn-outline-primary btn-sm" style="position:absolute;top:70%;left:50%;transform:translate(-50%, -50%);min-width:40px;font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;border-radius:8px;z-index:2;padding:2px 6px;font-size:0.75rem;">1 m/s</button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+      <div class="row g-4 align-items-start mb-3">
+        <!-- 下段4カラム: パディングとフォントサイズを縮小し、ラベルと数値を2段で表示 -->
+        <div class="col-12 col-md-3">
+          <div class="bg-white rounded shadow p-3 text-center fs-5">
+            <div>機首風速</div>
+            <div>
+              <span id="noseWindValue" class="fw-bold" style="font-size:1.8rem;font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;">--</span><br>
+              <button id="noseWindUnitBtn" type="button" class="btn btn-outline-secondary btn-sm" style="font-size:0.7rem;min-width:35px;font-family:'Inter',sans-serif;border-radius:3px;">m/s</button>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-md-3">
+          <div class="bg-white rounded shadow p-3 text-center fs-5">
+            <div>音速</div>
+            <div>
+              <span id="soundSpeedValue" class="fw-bold" style="font-size:1.8rem;font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;">--</span><br>
+              <span style="font-size:1rem;">m/s</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-md-3">
+          <div class="bg-white rounded shadow p-3 text-center fs-5">
+            <div>音仮温度</div>
+            <div>
+              <span id="soundTempValue" class="fw-bold" style="font-size:1.8rem;font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;">--</span><br>
+              <span style="font-size:1rem;">℃</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-md-3">
+          <div class="bg-white rounded shadow p-3 text-center fs-5">
+            <div>10分間平均風速</div>
+            <div>
+              <span id="avg10minWindValue" class="fw-bold" style="font-size:1.8rem;font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;">--</span><br>
+              <button id="avg10minWindUnitBtn" type="button" class="btn btn-outline-secondary btn-sm" style="font-size:0.7rem;min-width:35px;font-family:'Inter',sans-serif;border-radius:3px;">m/s</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  <!-- ダークモード切替ボタン・ダーク用スクリプト・スタイルを削除 -->
+  <!-- main.jsをESモジュールとして読み込む -->
+  <script type="module" src="main.js"></script>
+
+  <script>
+    // フルスクリーンボタンのトグル動作
+    const chartFullscreenBtn = document.getElementById('chartFullscreenBtn');
+    const windChart = document.getElementById('windChart');
+    chartFullscreenBtn?.addEventListener('click', () => {
+      const chartArea = windChart.closest('#chartArea');
+      if (!chartArea) return;
+      // 既にこの要素がフルスクリーンの場合は終了、そうでなければ開始
+      const isFs = document.fullscreenElement === chartArea || document.webkitFullscreenElement === chartArea;
+      if (isFs) {
+        // Exit fullscreen
+        (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+      } else {
+        // Enter fullscreen
+        (chartArea.requestFullscreen || chartArea.webkitRequestFullscreen).call(chartArea);
+      }
+    });
+  </script>
+</body>
+</html>
