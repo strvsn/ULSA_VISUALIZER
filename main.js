@@ -15,6 +15,22 @@ import {
   initGaugeMaxButton,  setupWindSpeedUnitButtons,
   updateRealtimeValuesWithUnit
 } from './modules/windUnitManager.js';
+// 🚀 パフォーマンス最適化モジュールの追加
+import memoryManager, { 
+  addEventListenerTracked, 
+  setIntervalTracked, 
+  setTimeoutTracked,
+  checkMemoryUsage 
+} from './modules/memoryManager.js';
+import canvasOptimizer, { 
+  createOptimizedCanvas, 
+  getCanvasMemoryUsage 
+} from './modules/canvasOptimizer.js';
+import dataOptimizer, { 
+  calculateOptimized10MinAverage,
+  compressWindData,
+  optimizeDataMemory 
+} from './modules/dataOptimizer.js';
 
 // --- Chart.js data management and core functionality ---
 // ** Chart.js パフォーマンス最適化実装済み（FPS低下問題解決）**
@@ -176,17 +192,34 @@ document.addEventListener('DOMContentLoaded', () => {
   initChartToggleButton();
   initDarkMode();
   initializeFpsMonitor();
-  setupWindSpeedUnitButtons();
-  initGaugeMaxButton();    // 初期背景アークを描画（デフォルト値0でグレー部分表示、風向0°）
-  drawWindGauge(0, 0);  // ** パフォーマンス最適化: バッチ処理タイマー間隔調整**
-  // バッチ更新処理タイマーを開始（CPU使用率削減のため500ms間隔に変更）
-  // 注意: 現在はqueueDataUpdate()で即座更新に変更されているため、このバッチ処理は実質的に無効化状態
-  // ** メモリリーク対策: タイマー参照を保持してクリーンアップ可能にする**
-  batchUpdateTimer = setInterval(processBatchUpdate, 500); // 50ms → 500ms（CPU使用率削減）
-  console.log('Batch update timer started (500ms interval, currently bypassed by real-time updates)');
-  console.log('Batch update timer started (500ms interval, currently bypassed by real-time updates)');
+  setupWindSpeedUnitButtons();  initGaugeMaxButton();    // 初期背景アークを描画（デフォルト値0でグレー部分表示、風向0°）
+  drawWindGauge(0, 0);  
   
-  console.log('All initialization completed successfully');  
+  // 🚀 メモリ管理システムでタイマーを管理
+  // バッチ更新処理タイマーを開始（CPU使用率削減のため500ms間隔に変更）  // 注意: 現在はqueueDataUpdate()で即座更新に変更されているため、このバッチ処理は実質的に無効化状態
+  batchUpdateTimer = setIntervalTracked(processBatchUpdate, 500); // メモリ管理対応
+  console.log('🚀 Batch update timer started with memory management (500ms interval)');
+  
+  // 🚀 パフォーマンス監視機能の追加
+  setIntervalTracked(() => {
+    checkMemoryUsage();
+    const canvasMemory = getCanvasMemoryUsage();
+    console.log('🎨 Canvas Memory:', canvasMemory);
+  }, 30000); // 30秒間隔でメモリ使用量をチェック
+  
+  // 🚀 データ最適化の定期実行
+  setIntervalTracked(() => {
+    optimizeDataMemory(); // データキャッシュの最適化
+    
+    // 長時間使用時のデータ圧縮
+    if (windHistory.length > 10000) {
+      const originalLength = windHistory.length;
+      windHistory = compressWindData(windHistory);
+      console.log(`📊 Wind data compressed: ${originalLength} → ${windHistory.length} points`);
+    }
+  }, 60000); // 1分間隔でデータ最適化
+  
+  console.log('✅ All initialization completed successfully with performance optimization');  
   // ** WebWorker デバッグ機能追加**
   // 開発者コンソールでWebWorkerの状態を確認可能にする
   window.checkWebWorkerStatus = function() {
@@ -244,6 +277,49 @@ document.addEventListener('DOMContentLoaded', () => {
   console.log('  - window.checkWebWorkerStatus(): Check WebWorker LTTB status');
   console.log('  - window.testWebWorkerLTTB(): Test WebWorker LTTB decimation');
   console.log('  - window.debugWebWorkerError(): Debug WebWorker LTTB errors');
+  
+  // 🚀 パフォーマンス監視のデバッグ機能追加
+  window.getPerformanceStats = function() {
+    const memoryTracking = memoryManager.getTrackingInfo();
+    const canvasMemory = getCanvasMemoryUsage();
+    const dataStats = dataOptimizer.getStatistics();
+    
+    console.log('📊 Performance Statistics:');
+    console.log('1. Memory Management:', memoryTracking);
+    console.log('2. Canvas Memory:', canvasMemory);
+    console.log('3. Data Optimizer:', dataStats);
+    console.log('4. Wind History Size:', windHistory.length);
+    
+    if ('memory' in performance) {
+      const memory = performance.memory;
+      console.log('5. Browser Memory:', {
+        used: `${(memory.usedJSHeapSize / 1024 / 1024).toFixed(2)}MB`,
+        total: `${(memory.totalJSHeapSize / 1024 / 1024).toFixed(2)}MB`,
+        limit: `${(memory.jsHeapSizeLimit / 1024 / 1024).toFixed(2)}MB`
+      });
+    }
+    
+    return { memoryTracking, canvasMemory, dataStats, windHistorySize: windHistory.length };
+  };
+  
+  window.optimizePerformance = function() {
+    console.log('🚀 Manual performance optimization triggered...');
+    checkMemoryUsage();
+    optimizeDataMemory();
+    
+    // 強制的なデータ圧縮
+    if (windHistory.length > 5000) {
+      const originalLength = windHistory.length;
+      windHistory = compressWindData(windHistory);
+      console.log(`📊 Forced data compression: ${originalLength} → ${windHistory.length} points`);
+    }
+    
+    console.log('✅ Performance optimization completed');
+  };
+  
+  console.log('🚀 Performance monitoring debug functions available:');
+  console.log('  - window.getPerformanceStats(): Get detailed performance statistics');
+  console.log('  - window.optimizePerformance(): Manually trigger performance optimization');
 });
 
 // <script type="module" src="main.js"></script>
@@ -314,13 +390,18 @@ function processBatchUpdate() {
 // 10分間平均風速を計算（キャッシュ最適化版）
 function calculate10MinAverage() {
   const now = performance.now();
-  
-  // 5秒間隔でのみ再計算（パフォーマンス最適化）
+    // 5秒間隔でのみ再計算（パフォーマンス最適化）
   if (now - last10MinCalcTime < CALC_10MIN_INTERVAL) {
     return cached10MinAvg;
   }
   
   try {
+    // 🚀 最適化: データオプティマイザーによる高速計算
+    cached10MinAvg = calculateOptimized10MinAverage(windHistory);
+  } catch (e) {
+    console.warn('Error calculating optimized 10-min average:', e);
+    
+    // フォールバック: 従来の方式
     const currentTime = new Date();
     const tenMinAgo = new Date(currentTime.getTime() - 10 * 60 * 1000);
     
@@ -342,9 +423,6 @@ function calculate10MinAverage() {
     } else {
       cached10MinAvg = '--';
     }
-  } catch (e) {
-    console.warn('Error calculating 10-min average:', e);
-    cached10MinAvg = '--';
   }
   
   last10MinCalcTime = now;
